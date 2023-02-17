@@ -7,7 +7,6 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
-	"github.com/minio/minio/pkg/env"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -67,7 +66,7 @@ var (
 )
 
 func init() {
-	targetEndpoint = env.Get("TARGET_ENDPOINT", "subnet.min.io")
+	targetEndpoint = os.Getenv("TARGET_ENDPOINT")
 	flag.StringVar(&tlsCrt, "tls-certificate", "/certs/tls.crt", "TLS certificate")
 	flag.StringVar(&tlsKey, "tls-key", "/certs/tls.key", "cert key")
 	//globalDNSCache = xhttp.NewDNSCache(3*time.Second, 10*time.Second, nil)
