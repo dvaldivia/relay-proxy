@@ -16,11 +16,13 @@ ENV CGO_ENABLED=0
 
 RUN go build -trimpath -ldflags "-w -s" -a -o reverse-proxy .
 
-FROM scratch
+FROM ubuntu
 
 MAINTAINER MinIO Development "dev@min.io"
 
 EXPOSE 8443
+
+RUN apt update && apt install -y curl
 
 COPY --from=golayer /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=golayer /go/src/github.com/dvaldivia/reverse-proxy/reverse-proxy .
