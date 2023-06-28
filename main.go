@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"flag"
 	"fmt"
+	"github.com/minio/minio/pkg/env"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -237,10 +238,45 @@ func main() {
 		respFunc := func(response *http.Response) error {
 			if len(response.Cookies()) > 0 {
 
-				cookiiee := response.Cookies()[0]
-				if cookiiee.Name == "authToken" {
-					log.Println("-----------------Response--------")
+				var cookieJar []*http.Cookie
 
+				//cookiiee := response.Cookies()[0]
+				for _, cookiiee := range response.Cookies() {
+					//if cookiiee.Name == "authToken" {
+					//	log.Println("-----------------Response--------")
+					//	cooka := response.Header.Get("Set-Cookie")
+					//	log.Println("")
+					//	log.Println(cooka)
+					//	log.Println("")
+					//	cookiiee.Secure = false
+					//	cookiiee.SameSite = http.SameSiteDefaultMode
+					//
+					//	cookieJar = append(cookieJar, cookiiee)
+					//}
+					//if cookiiee.Name == "refreshToken" {
+					//	log.Println("-----------------Response--------")
+					//	cooka := response.Header.Get("Set-Cookie")
+					//	log.Println("")
+					//	log.Println(cooka)
+					//	log.Println("")
+					//	cookiiee.Secure = false
+					//	cookiiee.SameSite = http.SameSiteDefaultMode
+					//
+					//	cookieJar = append(cookieJar, cookiiee)
+					//}
+					//if cookiiee.Name == "vid" {
+					//	log.Println("-----------------Response--------")
+					//	cooka := response.Header.Get("Set-Cookie")
+					//	log.Println("")
+					//	log.Println(cooka)
+					//	log.Println("")
+					//	cookiiee.Secure = false
+					//	cookiiee.SameSite = http.SameSiteDefaultMode
+					//
+					//	cookieJar = append(cookieJar, cookiiee)
+					//}
+
+					log.Println("-----------------Response--------")
 					cooka := response.Header.Get("Set-Cookie")
 					log.Println("")
 					log.Println(cooka)
@@ -248,12 +284,17 @@ func main() {
 					cookiiee.Secure = false
 					cookiiee.SameSite = http.SameSiteDefaultMode
 
-					response.Header.Del("Set-Cookie")
-					response.Header.Add("Set-Cookie", cookiiee.String())
+					cookieJar = append(cookieJar, cookiiee)
 
-					log.Printf("%+v", response.Header)
-					log.Println("")
 				}
+
+				response.Header.Del("Set-Cookie")
+				for _, cookiiee := range cookieJar {
+					response.Header.Add("Set-Cookie", cookiiee.String())
+				}
+
+				log.Printf("%+v", response.Header)
+				log.Println("")
 
 			}
 
@@ -269,10 +310,12 @@ func main() {
 		proxy.ServeHTTP(w, r)
 	})
 
+	port := env.Get("PROXY_PORT", "4233")
+
 	loggedRouter := handlers.CombinedLoggingHandler(os.Stdout, r.GetHandler())
 	s := &http.Server{
 		Handler:        loggedRouter,
-		Addr:           ":4233",
+		Addr:           fmt.Sprintf(":%s", port),
 		MaxHeaderBytes: 1 << 20,
 		TLSConfig: &tls.Config{
 			// TLS hardening
